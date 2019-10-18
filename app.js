@@ -30,11 +30,19 @@ app.post( '/records', async (req , res) => {
 })
 
 // Send a DELETE request to "/list/:id" to DELETE records
-app.delete( '/records', async (req, res) => {
+app.delete( '/records/:id', async (req, res) => {
   const list = await records.getRecords();
-  console.log(list);
-
-
+  const allRecords = list.records;
+  const recordsId = allRecords.map(x => x.id);
+  const recordToDelete = req.params.id;  
+  list.records = list.records.filter(item => item.id != recordToDelete);
+  
+  const jsonRecords = JSON.stringify({records: list.records}, null, 2);
+  fs.writeFile('./data/data.json', jsonRecords, (err) => {
+    if (err) throw err;
+    console.log('The file has been saved!');
+  });
+  console.log(jsonRecords)
 })
 
 // Send a PUT request to "/list/:id" to UPDATE records
