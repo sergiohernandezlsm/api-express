@@ -17,7 +17,21 @@ const getRecords = () => {
   });
 }
 
+/**
+ * Rewrite data in jason file
+ * @param route path of json file
+ * @param jsonRecord all record to update as string in json file need JSON.strinify
+ * desc: rewrite data.json to update obj
+ */
+const reWriteFile = (route , jsonRecord) => {
+  fs.writeFile('./data/data.json', jsonRecord, (err) => {
+    if (err) throw err;
+    console.log('The file has been saved!');
+  });
+}
+
 
 module.exports = {
-  getRecords
+  getRecords,
+  reWriteFile
 }
