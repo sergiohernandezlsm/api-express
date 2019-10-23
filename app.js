@@ -1,79 +1,65 @@
 const express = require('express');
 const app = express();
-const records = require('./src/functions');
+const User = require('./src/database/models/User');
 
 app.use(express.json());
 
-
-// Send a GET request to "/records" to READ list of record
-app.get( '/records', async (req, res) => {
+// Send a GET request to "/api/users" to READ list of record
+app.get( '/api/users', async (req, res) => {
   try {
-    const list = await records.getRecords();
-    res.json(list);
+    const users = await User.findAll();
+    res.status(200).json(users);
   } catch(err){
-    res.json({message: err.message});
+    res.status(500).json({message: err.message});
   }
 });
 
-// Send a GET request to "/records/:id" to READ specific record
-app.get( '/records/:id' , async (req, res) => {
+// Send a GET request to "/users/:id" to READ specific record
+app.get( '/api/users/:id' , async (req, res) => {
   try {
-    const list = await records.getRecords();
-    const recordId = req.params.id; 
-    const recordToRead = list.records.find( item => item.id == recordId );
-    res.json(recordToRead);
+    const user = await User.findByPk(req.params.id);
+    res.status(200).json(user);
+  } catch(err){
+    res.status(500).json({message: err.message});
+  }
+});
+
+// Send a POST request to "/api/users" to CREATE record
+app.post( '/api/users', async (req,res) => {
+  try {
+    const newUser = new User({
+      first_name: req.body.first_name,
+      last_name: req.body.last_name
+    });
+    await newUser.save();
+    res.status(201).send(newUser.toJSON()); 
+  } catch (err) {
+    res.status(500).json({message: err.message});
+  }  
+});
+
+// Send a DELETE request to "/users/:id" to DELETE users
+app.delete( '/api/users/:id', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    await user.destroy();
+    res.status(204).send();
   } catch(err) {
     res.status(500).json({message: err.message});
   }
 });
 
-// Send a POST request to "/records" to CREATE record
-app.post( '/records', async (req,res) => {
+// Send a PUT request to "/users/:id" to UPDATE users
+app.put( '/api/users/:id', async (req, res) => {
   try {
-    const list = await records.getRecords();
-    const recordsJson = list.records;
-    recordsJson.push(req.body);
-    const jsonRecords = JSON.stringify({records: recordsJson}, null, 2);
-    // rewrite data.json to update obj
-    records.reWriteFile('./data/data.json',jsonRecords);
-    res.json(list);
-  } catch(err) {
-    res.status(500).json({message: err.message});
-  }
-});
-
-// Send a DELETE request to "/records/:id" to DELETE records
-app.delete( '/records/:id', async (req, res) => {
-  try{
-    const list = await records.getRecords();
-    const recordId = req.params.id;  
-    list.records = list.records.filter(item => item.id != recordId);
-    const jsonRecords = JSON.stringify({records: list.records}, null, 2);
-    // rewrite data.json to update obj
-    records.reWriteFile('./data/data.json',jsonRecords);
-    res.json(list);
+    const user = await User.findByPk(req.params.id);
+    await user.update(req.body);
+    res.status(202).send(user.toJSON());
   } catch(err) {
     res.status(500).json({message: err.message})
   }
 });
 
-// Send a PUT request to "/records/:id" to UPDATE records
-app.put( '/records/:id', async (req, res) => {
-  try{
-    const list = await records.getRecords();
-    const recordId = req.params.id; 
-    const toChange = list.records.find( item => item.id == recordId );
-    toChange.name = req.body.name;
-    toChange.lastname = req.body.lastname;
-    const jsonRecords = JSON.stringify({records: list.records}, null, 2);
-    // rewrite data.json to update obj
-    records.reWriteFile('./data/data.json',jsonRecords);
-    res.json(list);
-  } catch(err) {
-    res.status(500).json({message: err.message});
-  }
-});
 
-
-app.listen(3000, () => console.log('Records API listening on port 3000!'));
+app.listen(3000, () => console.log('users API listening on port 3000!'));
 
